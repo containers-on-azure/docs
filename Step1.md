@@ -13,7 +13,11 @@ FrontEnd team built a initial mock version of the their application. Knowing tha
 
 [FrontEnd.Web] &rarr; [FrontEnd.Api]
 
-To debug the application run both projects in Visual Studio. Open the browser on http://localhost:5100/ which will show you the start page containing information about Stocks Market. This information is being pulled from http://localhost:5200/api/v1/contents. The base URI of the API is defined in the configuration setting ```FrontEndApi```, found in file ```appsettings.Development.json``` in FrontEnd.Web project.
+To debug the application run both projects in Visual Studio. Open the browser on http://localhost:5100/ which will show you the start page containing information about Stocks Market.
+
+![FrontEnd.Web](./media/step1-frontend-web.png)
+
+The stock information is pulled from http://localhost:5200/api/v1/contents. The base URI of the API is defined in the configuration setting ```FrontEndApi```, found in file ```appsettings.Development.json``` in FrontEnd.Web project.
 
 ```json
 {
