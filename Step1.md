@@ -1,7 +1,5 @@
 # Step 1 - FrontEnd team Kick-off
 
-## Goal
-
 FrontEnd team built a initial mock version of the their application. Knowing that they will depend on other teams they have created a Façade/View API to isolate their web application dependency from other resources.
 
 ## Projects

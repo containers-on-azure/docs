@@ -1,7 +1,5 @@
 # Step 2 - FrontEnd team adding Docker Support
 
-## Goal
-
 FrontEnd team is responsible for a small part of the whole solution build by the company. Others teams will build services that might be, direct or indirectally, dependents on their services.
 
 They needed a place to deploy their applications with security, rolling updates, networking, discovery, capable of running multiple stacks (they wish to migrate their web FrontEnd to Angular in the future).
@@ -12,7 +10,7 @@ Visual Studio tooling makes it easy to start working with Docker. For that right
 
 This will create a Dockerfile with instructions on how to build the docker image and create a docker-compose project that allow us to debug multiple containers inside Visual Studio.
 
-### Running containers in Kubernetes
+## Running containers in Kubernetes
 
 Kubernetes orchestrates containers in a cluster. In order to run a container in a Kubernetes cluster (assuming you have one already) requires the following steps:
 
