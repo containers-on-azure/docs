@@ -22,69 +22,34 @@ Kubernetes orchestrates containers in a cluster. In order to run a container in 
 
 Kubernetes can be executed locally (for testing purposes) with [minikube](https://kubernetes.io/docs/setup/minikube/) or [Docker CE](https://docs.docker.com/docker-for-windows/kubernetes/).
 
-I will be using minikube for now, but this example can be applied to Docker CE the same way.
+I will be using Docker for now, but this example can be applied to minikube same way.
 
-1. Build an image with Visual Studio. Click Build / Batch Build... and select "docker-compose" with Release configuration. Click button "Build". After the build is done you should see 2 new images by running ```docker images```: frontendapi:latest and frontendweb:latest.
-1. Before we publish we need to tag the image, adding a version and the registry information (fbeltrao in my case):
+1. Build an image with Visual Studio. Click Build / Batch Build... and select "docker-compose" with Release configuration. Click "Build" button. After the build is done you should see 2 new images by running ```docker images```: frontendapi:latest and frontendweb:latest.
+1. Before publishing we need to tag the images, adding a version and the container registry information (fbeltrao in my case):
 ```
-docker tag frontendapi:latest fbeltrao/frontendapi:1.0
-docker tag frontendweb:latest fbeltrao/frontendweb:1.0
+docker tag frontendapi:latest fbeltrao/frontendapi:1.0 & docker tag frontendweb:latest fbeltrao/frontendweb:1.0
 ```
 Now we can publish the images to Docker Hub (it requires ```docker login``` the first time):
 ```
-docker push fbeltrao/frontendapi:1.0
-docker push fbeltrao/frontendweb:1.0
+docker push fbeltrao/frontendapi:1.0 & docker push fbeltrao/frontendweb:1.0
 ```
-3. Create the application manifest yaml, describing how your application works.
-```yaml
+3. Apply the deployment to kubernetes using the kubectl command line. To view the yaml file content [click here](https://github.com/containers-on-azure/FrontEnd/blob/version-01/deployment/k8s/local-deployment.yaml)
+```cmd
+kubectl apply -f https://raw.githubusercontent.com/containers-on-azure/FrontEnd/version-01/deployment/k8s/local-deployment.yaml
 ```
-kubectl apply -f "C:\dev\github.com\containers-on-azure\FrontEnd\deployment\minikube\deployment.yaml"
 
-kubectl expose deployment frontend-deployment --type=LoadBalancer
-service "frontend-deployment" exposed
-kubectl get services
-NAME                  TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
-frontend-deployment   LoadBalancer   10.103.232.109   <pending>     80:32014/TCP   5s
-kubernetes            ClusterIP      10.96.0.1        <none>        443/TCP        53m
-
-minikube service frontend-deployment -> /api/v1/contents
-
-
-
-## Projects
-
-|Project|Description|Stack|Dependencies|Branch|
-|-|-|-|-|-|
-|[FrontEnd.Web](https://github.com/containers-on-azure/FrontEnd)|Web UI|ASP.NET Razor Pages|FrontEnd.Api|version-00|
-|[FrontEnd.Api](https://github.com/containers-on-azure/FrontEnd)|Web API|ASP.NET Web Api||version-00|
-
-[FrontEnd.Web] &rarr; [FrontEnd.Api]
-
-To debug the application run both projects in Visual Studio. Open the browser on http://localhost:5100/ which will show you the start page containing information about Stocks Market. This information is being pulled from http://localhost:5200/api/v1/contents. The base URI of the API is defined in the configuration setting ```FrontEndApi```, found in file ```appsettings.Development.json``` in FrontEnd.Web project.
-
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Debug",
-      "System": "Information",
-      "Microsoft": "Information"
-    }
-  },
-  "FrontEndApi": "http://localhost:5200",
-  "Kestrel": {
-    "EndPoints": {
-      "Http": {
-        "Url": "http://localhost:5100"
-      },
-      "Https": {
-        "Url": "https://localhost:5101"
-      }
-    }
-  }
-}
+You can check that the web service is running:
+```cmd
+$ kubectl get services
+NAME           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+frontend-api   ClusterIP      10.107.213.245   <none>        80/TCP         18s
+frontend-web   LoadBalancer   10.103.94.135    localhost     80:30392/TCP   18s
+kubernetes     ClusterIP      10.96.0.1        <none>        443/TCP        4h
 ```
+
+Open the browser where the web is bounded (in my case http://localhost:80) and check that the application is running.
+
 
 [Go to Start](./ReadMe.md)\
-[Go to previous step](./ReadMe.md)\
-[Go to next step](./Step2.md)
+[Go to previous step](./Step1.md)\
+[Go to next step](./Step3.md)
