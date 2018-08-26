@@ -68,7 +68,7 @@ How is the development experience using Microsoft/OSS solutions?
 
 Coding/patterns writing  Microservices in C#
 
-- DDD7
+- DDD
 - Mediatr
 - Simple CRUD
 
@@ -114,6 +114,7 @@ Play around with the different DevOps/Container tools available
 
 - [Step 1 - FrontEnd team Kick-off](./Step1.md)
 - [Step 2 - FrontEnd team adding Docker Support](./Step2.md)
-- [Step 3 - Creating the Cluster](./Step3.md)
-- [Step 4 - FrontEnd manually deploying to a Kubernetes Cluster](./Step4.md)
-- [Step 5 - FrontEnd automating build/deployment process](./Step5.md)
+- [Step 3 - Bringing Containers to Production](./Step3.md)
+- [Step 4 - FrontEnd automating build/deployment process](./Step4.md)
+- [Step 5 - Stocks team joins in](./Step5.md)
+- [Step 6 - Making changes with confidence](./Step6.md)

@@ -1,53 +1,47 @@
 # Step 2 - FrontEnd team adding Docker Support
 
-FrontEnd team is responsible for a small part of the whole solution build by the company. Others teams will build services that might be, direct or indirectally, dependents on their services.
+FrontEnd team is responsible for a small part of the whole solution build by the company. Others teams will build services that might be, direct or indirectly, dependents on their services.
 
-They needed a place to deploy their applications with security, rolling updates, networking, discovery, capable of running multiple stacks (they wish to migrate their web FrontEnd to Angular in the future).
+They needed a place to deploy their applications with security, isolation, rolling updates, networking, capable of running multiple stacks (they wish to migrate their web FrontEnd to Angular in the future).
 
-Containers and Kubernetes solve many of this problem by providing a reliable and secure way to run application across a number of machines.
+Containers allows them to isolate an application piece (web or api in their case) in a standard way so that can executed by different hosts and operation systems. Using virtual machines would require them to install the required frameworks on the host for each version used. Containers allows them to build the dependency directly into the image that will be used to run the application. It allows a Linux OS without NodeJS, .NET Core and Java installed to execute code written in any of these programming stacks.
 
-Visual Studio tooling makes it easy to start working with Docker. For that right click on each project and select Add &rarr; Container Orchestrator Support.
+## Container Developer Experience
 
-This will create a Dockerfile with instructions on how to build the docker image and create a docker-compose project that allow us to debug multiple containers inside Visual Studio.
+For the FrontEnd team it is important to continue to have the rich experience provided by Visual Studio, allowing the to debug their code without cerimonies.
 
-## Running containers in Kubernetes
+Visual Studio tooling makes it easy to start working with Docker. For instance to add Docker support to the FrontEnd solution right click on each project and select Add &rarr; Container Orchestrator Support.
 
-Kubernetes orchestrates containers in a cluster. In order to run a container in a Kubernetes cluster (assuming you have one already) requires the following steps:
+This will create a Dockerfile with instructions on how to build the docker image. It will also create a docker-compose project that allows debugging multiple containers inside Visual Studio.
 
-1. From your source code build a docker image
-1. Publish docker image to an image registry (Docker Hub, Azure Container Registry)
-1. Create the application manifests (yaml files) and apply to Kubernetes
+The docker compose file defines how each project is built and their dependencies (web depends on the api):
 
-Kubernetes can be executed locally (for testing purposes) with [minikube](https://kubernetes.io/docs/setup/minikube/) or [Docker CE](https://docs.docker.com/docker-for-windows/kubernetes/).
+```yaml
+version: '3.4'
 
-I will be using Docker for now, but this example can be applied to minikube same way.
+services:
+  frontend-api:
+    image: ${DOCKER_REGISTRY}frontendapi
+    build:
+      context: .
+      dockerfile: src/FrontEnd.Api/Dockerfile
 
-1. Build an image with Visual Studio. Click Build / Batch Build... and select "docker-compose" with Release configuration. Click "Build" button. After the build is done you should see 2 new images by running ```docker images```: frontendapi:latest and frontendweb:latest.
-1. Before publishing we need to tag the images, adding a version and the container registry information (fbeltrao in my case):
-```
-docker tag frontendapi:latest fbeltrao/frontendapi:1.0 & docker tag frontendweb:latest fbeltrao/frontendweb:1.0
-```
-Now we can publish the images to Docker Hub (it requires ```docker login``` the first time):
-```
-docker push fbeltrao/frontendapi:1.0 & docker push fbeltrao/frontendweb:1.0
-```
-3. Apply the deployment to kubernetes using the kubectl command line. To view the yaml file content [click here](https://github.com/containers-on-azure/FrontEnd/blob/version-01/deployment/k8s/local-deployment.yaml)
-```cmd
-kubectl apply -f https://raw.githubusercontent.com/containers-on-azure/FrontEnd/version-01/deployment/k8s/local-deployment.yaml
-```
-
-You can check that the web service is running:
-```cmd
-$ kubectl get services
-NAME           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
-frontend-api   ClusterIP      10.107.213.245   <none>        80/TCP         18s
-frontend-web   LoadBalancer   10.103.94.135    localhost     80:30392/TCP   18s
-kubernetes     ClusterIP      10.96.0.1        <none>        443/TCP        4h
+  frontend-web:
+    image: ${DOCKER_REGISTRY}frontendweb
+    build:
+      context: .
+      dockerfile: src/FrontEnd.Web/Dockerfile
+    depends_on:
+      - frontend-api
 ```
 
-Open the browser where the web is bounded (in my case http://localhost:80) and check that the application is running.
+Running the docker-compose project will allows the team to debug both projects. Docker compose also allows calling the api with the internal address of http://frontend-api, since this is how we defined the service name.
 
+The Frontend team now is able to create container images from Visual Studio. The development experience is still as before, allowing them to easily debug their code.
 
+In the next step we will look into how they can bring their application to production.
+
+ 
 [Go to Start](./ReadMe.md)\
 [Go to previous step](./Step1.md)\
 [Go to next step](./Step3.md)
