@@ -50,7 +50,6 @@ kubernetes     ClusterIP      10.96.0.1        <none>        443/TCP        4h
 
 Open the browser where the web is bounded (in my case http://localhost:80) and check that the application is running.
 
-
 To delete the application run the bash command
 ```bash
 kubectl delete -f https://raw.githubusercontent.com/containers-on-azure/FrontEnd/version-01/deployment/k8s/local-deployment.yaml
@@ -58,20 +57,105 @@ kubectl delete -f https://raw.githubusercontent.com/containers-on-azure/FrontEnd
 
 ### Kubernetes Deployment in Production
 
-[Demonstrate how to deploy an AKS cluster]
+In order to deploy to an Kubernetes in Azure ensure that you have an AKS cluster running.
+Information on how to setup can be found here: [using cli](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough), using [Azure Portal](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough-portal).
 
-[Demonstrate how to use kubectl to deploy the same application to the cluster]
+In order to retrieve the AKS Kubectl credentials run the following command: 
+```bash
+az aks get-credentials --name {your-aks-name} --resource-group {your-resource-group-running-aks}
+```
+
+Deploying to Azure AKS exactly like we did on the local environment. So change the context to be using the AKS cluster and then
+```bash
+kubectl apply -f https://raw.githubusercontent.com/containers-on-azure/FrontEnd/version-01/deployment/k8s/local-deployment.yaml
+```
+
+After a while you see the deployment running on Azure:
+```bash
+$ kubectl get pods
+NAME                                       READY     STATUS    RESTARTS   AGE
+frontend-api-deployment-6bc6bb9f6c-vdpjk   1/1       Running   0          2m
+frontend-web-deployment-859b75949-fcxh4    1/1       Running   0          2m
+```
+
+Verify also that a public IP address will be allocated to your service with type: LoadBalancer
+```bash
+$ kubectl get services
+NAME           TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+frontend-api   ClusterIP      10.0.242.251   <none>          80/TCP         3m
+frontend-web   LoadBalancer   10.0.117.158   xx.81.243.248   80:30703/TCP   3m
+kubernetes     ClusterIP      10.0.0.1       <none>          443/TCP        12m
+```
 
 
 ## Service Fabric
 
-Another container orchestration alternative is Service Fabric. Service Fabric, is an open source project lead by Microsoft used internally to serve many Azure services (SQL Azure, IoT Hub, Cosmos DB, etc.). While Kubernetes and Börg are different source versions, Service Fabric has a single version (same version used by Microsoft and others).
+Another container orchestration alternative is Service Fabric. Service Fabric, is an open source project lead by Microsoft used internally to serve many Azure services (SQL Azure, IoT Hub, Cosmos DB, etc.). While Kubernetes and Bï¿½rg are different source versions, Service Fabric has a single version (same version used by Microsoft and others).
 
 If Kubernetes is the Lego orchestrator, Service Fabric can be described as the Playmobil. It is simpler to build and start playing, but offers a limited amount of extensibility.
 
 ### Service Fabric Development Experience
 
 Visual Studio offers a Service Fabric SDK where you can install and run local cluster on the development machine. The debug experience is great, as normal projects.
+
+It is not (at least at the time of writing) not possible to add an existing .NET Core application to an existing Service Fabric Mesh Application. You can do it manually following the steps below:
+
+1. In your project root folder add new folder 'Service Resources'
+1. In folder 'Service Resources' add new file service.yaml with contents like this:
+```yaml
+## Service definition ##
+application:
+  schemaVersion: 1.0.0-preview1
+  name: FrontEndApplication
+  properties:
+    services:
+      - name: web
+        properties:
+          description: FrontEnd api
+          osType: Windows
+          codePackages:
+            - name: web
+              image: frontendweb:dev
+              endpoints:
+                - name: apiListener
+                  port: 1950
+              environmentVariables:
+                - name: ASPNETCORE_URLS
+                  value: http://+:1950
+              resources:
+                requests:
+                  cpu: 0.5
+                  memoryInGB: 1
+          replicaCount: 1
+          networkRefs:
+            - name: FrontEndApplicationNetwork
+```
+3. Add the require network in the file {ServiceFabricMesh}/App Resources/network.yaml
+```yaml
+## Network definition ##
+network:
+  schemaVersion: 1.0.0-preview1
+  name: FrontEndApplicationNetwork
+  properties:
+    description: FrontEndApplicationNetwork description.
+    addressPrefix: 10.0.0.4/22
+    ingressConfig:
+      layer4:
+		- name: webIngress
+		  publicPort: 1950
+		  applicationName: FrontEndApplication
+		  serviceName: web
+		  endpointName: webListener
+```
+4. Edit the project file (.csproj) adding the property IsSFAppServiceProject
+```xml
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <IsSFAppServiceProject>true</IsSFAppServiceProject>
+  </PropertyGroup>
+```
+5. Add nuget package Microsoft.VisualStudio.Azure.SFApp.Targets (currently in preview)
+6. Edit the project build dependencies, adding the .NET Core project as one of the dependencies for the Service Fabric Application project. Editing build dependencies is available by right-clicking the solution then "Project Dependencies..."
 
 ### Service Fabric Deployment in Production
 
